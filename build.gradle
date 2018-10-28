@@ -1,0 +1,23 @@
+apply plugin: 'java'
+
+group 'org.hl'
+version '1.0'
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+buildscript{
+    repositories{
+        mavenCentral()
+    }
+}
+
+dependencies {
+}
+
