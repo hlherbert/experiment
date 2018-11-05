@@ -1,8 +1,7 @@
 package com.hl.test;
 
-import com.hl.RequestProcessor;
+import com.hl.processor.RequestProcessor;
 
-import java.io.Console;
 import java.util.Scanner;
 
 public class TestRequestProcessor  {

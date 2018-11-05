@@ -1,6 +1,6 @@
 package com.hl.test;
 
-import com.hl.Request;
+import com.hl.processor.Request;
 
 public class MyRequest implements Request {
     private int id;

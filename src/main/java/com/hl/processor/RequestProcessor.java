@@ -1,14 +1,7 @@
-package com.hl;
+package com.hl.processor;
 
-import java.io.IOException;
-import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class RequestProcessor implements Runnable {
 
