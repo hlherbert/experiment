@@ -1,4 +1,4 @@
-package com.hl.processor;
+package com.hl.designPattern.processor;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

@@ -1,7 +1,4 @@
-package com.hl.proxy;
-
-import sun.reflect.CallerSensitive;
-import sun.reflect.Reflection;
+package com.hl.designPattern.proxy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

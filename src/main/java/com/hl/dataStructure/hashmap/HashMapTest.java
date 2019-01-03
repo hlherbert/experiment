@@ -1,4 +1,4 @@
-package com.hl.hashmap;
+package com.hl.dataStructure.hashmap;
 
 import java.util.*;
 

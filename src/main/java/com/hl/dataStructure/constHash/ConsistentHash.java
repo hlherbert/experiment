@@ -1,4 +1,4 @@
-package com.hl.constHash;
+package com.hl.dataStructure.constHash;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

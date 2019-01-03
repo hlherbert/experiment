@@ -1,6 +1,6 @@
-package com.hl.test;
+package com.hl.designPattern.processor.test;
 
-import com.hl.processor.RequestProcessor;
+import com.hl.designPattern.processor.RequestProcessor;
 
 import java.util.Scanner;
 

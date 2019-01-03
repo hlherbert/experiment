@@ -1,4 +1,4 @@
-package com.hl.proxy;
+package com.hl.designPattern.proxy;
 
 
 public class Cat implements ICat{

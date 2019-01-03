@@ -1,6 +1,6 @@
-package com.hl.test;
+package com.hl.designPattern.processor.test;
 
-import com.hl.processor.Request;
+import com.hl.designPattern.processor.Request;
 
 public class MyRequest implements Request {
     private int id;
