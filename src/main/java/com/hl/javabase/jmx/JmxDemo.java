@@ -8,6 +8,17 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.rmi.registry.LocateRegistry;
 
+/**
+ * JMX(java management extension) 是一个对象可视化管理监控规范。
+ * 用户可以定义MBean对象，然后启动MBeanServer，将MBean注册上去。
+ * 之后可以打开jconsole连接到MBeanServer的进程上，通过可视化查看或修改MBean的属性，执行MBean的操作。
+ * JMX是为应用程序、设备、系统等植入管理功能的框架
+ * JMX可以跨越一系列异构操作系统平台、系统体系结构和网络传输协议，灵活的开发无缝集成的系统、网络和服务管理应用。
+ *
+ * 用途：  服务端程序部署在生成环境上。启动后不允许停机或者调试。
+ * 为了方便查看服务程序的各项运行期指标，可以在服务端程序中定义MBean监控该指标，并启用JMX服务(MBeanServer)，暴露端口PORT。
+ * 之后管理员可以通过jconsole，在任意外部PC，远程连接 服务端IP：PORT, 查看服务端程序的VM状态以及各项指标，还可以操作服务端中定义的MBean。
+ */
 public class JmxDemo {
 
     private User bean;
@@ -59,12 +70,6 @@ public class JmxDemo {
         }
     }
 
-    // JMX(java management extension) 是一个对象可视化管理监控规范。
-    // 用户可以定义MBean对象，然后启动MBeanServer，将MBean注册上去。
-    // 之后可以打开jconsole连接到MBeanServer的进程上，通过可视化查看或修改MBean的属性，执行MBean的操作。
-    //
-    // JMX是为应用程序、设备、系统等植入管理功能的框架
-    // JMX可以跨越一系列异构操作系统平台、系统体系结构和网络传输协议，灵活的开发无缝集成的系统、网络和服务管理应用。
     public static void main(String[] args) throws MalformedObjectNameException, NullPointerException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, IOException {
         JmxDemo demo = new JmxDemo();
         demo.registryMBeans();
@@ -72,7 +77,9 @@ public class JmxDemo {
         //demo.startServerRemote();
 
         // 步骤：
-        // 1. 定义MBean, MBean接口，为MBean接口加上注解@MXBean
+        // 1. 定义MBean和MBean接口。
+        //    标准MBean的定义为 Xxx类以及XxxMBean接口。
+        //    扩展MxBean可以将接口名任意指定，但是需要接口上加上注解@MXBean
         //
         // 2. 注册MBean,分2种情况:
         //    (1)如果使用Spring boot框架，会自动注册MBean到MBeanServer
