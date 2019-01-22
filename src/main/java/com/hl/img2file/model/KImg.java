@@ -4,7 +4,10 @@ package com.hl.img2file.model;
  * 文件的图片模型
  */
 public class KImg {
+    /** 头部 */
     private KImgHeader header;
+
+    /** 数据 */
     private byte[]     data;
 
     public KImgHeader getHeader() {
