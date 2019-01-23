@@ -23,9 +23,6 @@ public class KImgConverter {
     public static final int KIMG_MINSIZE = 256;
 
 
-
-
-
     public static KImg fileToKimg(File file, KImgConvertParam param) throws IOException {
         // check
         checkKimgConvertParam(file, param);
@@ -40,7 +37,7 @@ public class KImgConverter {
         if (size > Integer.MAX_VALUE) {
             throw new IOException("file too large");
         }
-        header.setDataByteSize((int)size);
+        header.setDataByteSize((int) size);
         kImg.setHeader(header);
 
         // data
@@ -59,16 +56,17 @@ public class KImgConverter {
 
     /**
      * 检查转换参数是否合法
+     *
      * @param file
      * @param param
      */
     private static void checkKimgConvertParam(File file, KImgConvertParam param) throws InvalidParameterException {
         long filesize = file.length();
-        if ((param.getHeight()-1)*(param.getWidth()-1) < filesize){
+        if ((param.getHeight() - 1) * (param.getWidth() - 1) < filesize) {
             throw new InvalidParameterException("img size is less than file size.");
         }
-        if (param.getHeight()<KIMG_MINSIZE || param.getWidth()<KIMG_MINSIZE) {
-            throw new InvalidParameterException(MessageFormat.format("img width or height is less than {1}.",KIMG_MINSIZE));
+        if (param.getHeight() < KIMG_MINSIZE || param.getWidth() < KIMG_MINSIZE) {
+            throw new InvalidParameterException(MessageFormat.format("img width or height is less than {1}.", KIMG_MINSIZE));
         }
     }
 
@@ -116,25 +114,26 @@ public class KImgConverter {
         BufferedImage image = new BufferedImage(header.getWidth(), header.getWidth(), BufferedImage.TYPE_BYTE_BINARY);
         ImageDrawer.drawBorders(image);
 
-        BufferedImage headerImg = image.getSubimage(1,1,image.getWidth()-1,1);
+        BufferedImage headerImg = image.getSubimage(1, 1, image.getWidth() - 1, 1);
         writeKimgHeader(header, headerImg);
 
-        BufferedImage dataImg = image.getSubimage(1,2,image.getWidth()-1,image.getWidth()-2);
+        BufferedImage dataImg = image.getSubimage(1, 2, image.getWidth() - 1, image.getWidth() - 2);
         writeKimgData(data, dataImg);
         return image;
     }
 
     /**
      * 从图片转成kimg
+     *
      * @param img 图片.已经处理为规范大小，且有边框
      * @return kimg模型
      */
     public static KImg imgToKimg(BufferedImage img) throws ImageHasNoBorderException {
         checkBorder(img);
-        BufferedImage headerImg = img.getSubimage(1,1,img.getWidth()-1,1);
+        BufferedImage headerImg = img.getSubimage(1, 1, img.getWidth() - 1, 1);
         KImgHeader header = readKimgHeader(headerImg);
 
-        BufferedImage dataImg = img.getSubimage(1,2,img.getWidth()-1,img.getHeight()-2);
+        BufferedImage dataImg = img.getSubimage(1, 2, img.getWidth() - 1, img.getHeight() - 2);
         byte[] data = readKimgData(dataImg, header.getDataByteSize());
 
         KImg kImg = new KImg();
@@ -144,9 +143,9 @@ public class KImgConverter {
     }
 
 
-
     /**
      * 从图片读kimg的头部
+     *
      * @param img 图片
      * @return 头部
      */
@@ -159,7 +158,8 @@ public class KImgConverter {
 
     /**
      * 从图片读数据
-     * @param img 图片
+     *
+     * @param img          图片
      * @param dataByteSize 数据长度（字节数）
      * @return 数据
      */
@@ -171,20 +171,21 @@ public class KImgConverter {
 
     /**
      * 检查图片是否有边框
+     *
      * @param img
      */
     private static void checkBorder(BufferedImage img) throws ImageHasNoBorderException {
         int w = img.getWidth();
         int h = img.getHeight();
-        for (int x=0;x<w;x++) {
-            if ( (img.getRGB(x,0) != ColorConstant.COLOR_WHITE)
-            ||   (img.getRGB(x, h-1) != ColorConstant.COLOR_WHITE)) {
+        for (int x = 0; x < w; x++) {
+            if ((img.getRGB(x, 0) != ColorConstant.COLOR_WHITE)
+                    || (img.getRGB(x, h - 1) != ColorConstant.COLOR_WHITE)) {
                 throw new ImageHasNoBorderException();
             }
         }
-        for (int y=0;y<h;y++) {
-            if ((img.getRGB(0,y) != ColorConstant.COLOR_WHITE)
-                    ||   (img.getRGB(w-1, y) != ColorConstant.COLOR_WHITE)) {
+        for (int y = 0; y < h; y++) {
+            if ((img.getRGB(0, y) != ColorConstant.COLOR_WHITE)
+                    || (img.getRGB(w - 1, y) != ColorConstant.COLOR_WHITE)) {
                 throw new ImageHasNoBorderException();
             }
         }
@@ -192,11 +193,12 @@ public class KImgConverter {
 
     /**
      * 将kimg头部写入图片
+     *
      * @param header 头部
-     * @param image 目标图片(无边框)
+     * @param image  目标图片(无边框)
      */
     private static void writeKimgHeader(KImgHeader header, BufferedImage image) {
-        Position pos = new Position(0,0);
+        Position pos = new Position(0, 0);
         pos = ImageDrawer.drawInt(image, pos, header.getHeight());
         pos = ImageDrawer.drawInt(image, pos, header.getWidth());
         pos = ImageDrawer.drawInt(image, pos, header.getDataByteSize());
@@ -205,11 +207,12 @@ public class KImgConverter {
 
     /**
      * 将kimg数据部分写入图片
-     * @param data 数据部分
+     *
+     * @param data  数据部分
      * @param image 目标图片(无边框)
      */
     private static void writeKimgData(byte[] data, BufferedImage image) {
-        Position pos = new Position(0,0);
+        Position pos = new Position(0, 0);
         pos = ImageDrawer.drawBytes(image, pos, data);
     }
 
