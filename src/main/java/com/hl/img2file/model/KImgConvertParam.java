@@ -7,6 +7,11 @@ public class KImgConvertParam {
     private int width;
     private int height;
 
+    public KImgConvertParam(int w, int h) {
+        width=w;
+        height=h;
+    }
+
     public int getWidth() {
         return width;
     }

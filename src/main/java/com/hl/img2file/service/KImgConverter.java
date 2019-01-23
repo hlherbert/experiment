@@ -3,10 +3,10 @@ package com.hl.img2file.service;
 import com.hl.img2file.model.KImg;
 import com.hl.img2file.model.KImgConvertParam;
 import com.hl.img2file.model.KImgHeader;
+import javafx.geometry.Pos;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.awt.image.WritableRaster;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -23,10 +23,32 @@ public class KImgConverter {
      */
     public static final int KIMG_MINSIZE = 256;
 
-    /** 方向 **/
+    // 1
+    private static final int COLOR_WHITE = 0xffffff;
+
+    // 0
+    private static final int COLOR_BLACK = 0x0;
+
+    /** 方向 */
     private enum Direction {
         VERTICAL,
         HORIZONTAL
+    }
+
+    /** 位置 */
+    private static class Position {
+        int x;
+        int y;
+
+        Position(int x, int y) {
+            this.x=x;
+            this.y=y;
+        }
+
+        Position(Position pos) {
+            this.x = pos.x;
+            this.y = pos.y;
+        }
     }
 
     public static KImg fileToKimg(File file, KImgConvertParam param) throws IOException {
@@ -44,13 +66,11 @@ public class KImgConverter {
             throw new IOException("file too large");
         }
         header.setDataByteSize((int)size);
+        kImg.setHeader(header);
 
         // data
-        FileChannel channel = null;
-        FileInputStream fs = null;
-        try {
-            fs = new FileInputStream(file);
-            channel = fs.getChannel();
+        try (FileInputStream fs = new FileInputStream(file);
+             FileChannel channel = fs.getChannel()) {
             ByteBuffer byteBuffer = ByteBuffer.allocate((int) channel.size());
             while ((channel.read(byteBuffer)) > 0) {
                 // do nothing
@@ -59,17 +79,6 @@ public class KImgConverter {
             byte[] data = byteBuffer.array();
             kImg.setData(data);
             return kImg;
-        } finally {
-            try {
-                channel.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                fs.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -88,10 +97,10 @@ public class KImgConverter {
         }
     }
 
-    public static File kimgToFile(KImg kimg) throws IOException,FileNotFoundException {
+    public static File kimgToFile(KImg kimg, String destFilePath) throws IOException {
         KImgHeader header = kimg.getHeader();
         String filename = header.getFilename();
-        File file = new File(filename);
+        File file = new File(destFilePath + File.pathSeparator + filename);
         byte[] data = kimg.getData();
 
         // write file
@@ -141,6 +150,15 @@ public class KImgConverter {
     }
 
     /**
+     * 从图片转成kimg
+     * @param img 图片
+     * @return kimg模型
+     */
+    public static KImg imgToKimg(BufferedImage img) {
+
+    }
+
+    /**
      * 画边框
      * @param image
      */
@@ -168,12 +186,12 @@ public class KImgConverter {
         switch (direction) {
             case HORIZONTAL:
                 for (int x=0;x<w;x++) {
-                    image.setRGB(x,line,1);
+                    image.setRGB(x,line,COLOR_WHITE);
                 }
                 break;
             case VERTICAL:
                 for (int y=0;y<h;y++) {
-                    image.setRGB(col,y,1);
+                    image.setRGB(col,y,COLOR_WHITE);
                 }
                 break;
         }
@@ -184,12 +202,11 @@ public class KImgConverter {
      * @param image 目标图片(无边框)
      */
     private static void writeKimgHeader(KImgHeader header, BufferedImage image) {
-        byte[] data = ((DataBufferByte) image.getData().getDataBuffer()).getData();
-        ByteBuffer buf = ByteBuffer.wrap(data);
-        buf.putInt(header.getHeight());
-        buf.putInt(header.getWidth());
-        buf.putInt(header.getDataByteSize());
-        buf.put(header.getFilename().getBytes());
+        Position pos = new Position(0,0);
+        pos = drawInt(image, pos, header.getHeight());
+        pos = drawInt(image, pos, header.getWidth());
+        pos = drawInt(image, pos, header.getDataByteSize());
+        pos = drawBytes(image, pos, header.getFilename().getBytes());
     }
 
     /**
@@ -198,17 +215,74 @@ public class KImgConverter {
      * @param image 目标图片(无边框)
      */
     private static void writeKimgData(byte[] data, BufferedImage image) {
-        // TODO
+        Position pos = new Position(0,0);
+        pos = drawBytes(image, pos, data);
     }
 
     /**
-     * 向字节区写入整数
-     * @param val 整数值
-     * @param buf 字节区
-     * @param start 写入的起始位置
+     * 在指定位置用像素画数据
+     * @param image 图像
+     * @param pos 起始位置
+     * @param val 数据
+     * @return 新的位置
      */
-    private static void writeInt(int val, byte[] buf, int start) {
-        // 整数为32位，4个字节，从低到高依次写入4个字节
+    private static Position drawInt(BufferedImage image, Position pos, int val) {
+        int nByte = Integer.BYTES;
+        byte[] bytes = new byte[nByte];
+        // read int into bytes, from lowest bit to highest bit
+        for (int i=0;i<nByte;i++) {
+            bytes[i] = (byte)((val >> (8*i)) & 0x8);
+        }
+        return drawBytes(image, pos, bytes);
+    }
 
+    /**
+     * 在指定位置用像素画数据
+     * @param image 图像
+     * @param pos 起始位置
+     * @param data 数据
+     * @return 新的位置
+     */
+    private static Position drawBytes(BufferedImage image, Position pos, byte[] data) {
+        int nByte = data.length;
+        for (int i=0;i<nByte;i++) {
+            byte byteVal = data[i];
+            for (int j=0;j<8;j++) {
+                int bit = (byteVal >> j) & 1;
+                pos = drawBit(image,pos,bit);
+            }
+        }
+        return pos;
+    }
+
+    /**
+     * 在指定位置用像素画数据
+     * 每个像素表示一个bit
+     * @param image 图像
+     * @param pos 起始位置
+     * @param bit 0/1
+     * @return 新的位置
+     */
+    private static Position drawBit(BufferedImage image, Position pos, int bit) {
+        checkPositionOutOfBound(image, pos.x, pos.y);
+        int color = COLOR_BLACK; //bit=0, black
+        if (bit == 1) {
+            color = COLOR_WHITE; //bit=1, white
+        }
+        image.setRGB(pos.x, pos.y, color);
+
+        // goto next position
+        Position newPos = new Position(pos.x+1, pos.y);
+        if (newPos.x >= image.getWidth()) {
+            newPos.x = 0;
+            newPos.y += 1;
+        }
+        return newPos;
+    }
+
+    private static void checkPositionOutOfBound(BufferedImage image, int x, int y) {
+        if (x < 0 || y <0 || x >= image.getWidth() || y >= image.getHeight()) {
+            throw new IndexOutOfBoundsException("position out of image bound.");
+        }
     }
 }
