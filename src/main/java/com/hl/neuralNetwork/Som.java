@@ -30,8 +30,9 @@ public class Som {
 
         Som som = new Som();
         int m = 2; //输入向量的维度
-        int n = 2; //分类数
-        List<Vector> samples = Stream.generate(() -> new Vector(m).clone().random().normalize()).limit(10).collect(Collectors.toList());
+        int n = 3; //分类数
+        List<Vector> samples = Stream.generate(() -> new Vector(m).clone().random().normalize())
+                .limit(100).collect(Collectors.toList());
         som.train(samples, m, n);
 
         List<ClassifySample> classifiedSamples = new ArrayList<ClassifySample>();

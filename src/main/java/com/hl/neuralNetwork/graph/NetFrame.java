@@ -46,7 +46,7 @@ public class NetFrame extends JFrame {
         jg = this.getGraphics();
 
         // 绘制游戏区域
-        //paintComponents(jg);
+        paintComponents(jg);
     }
 
 
@@ -84,9 +84,6 @@ public class NetFrame extends JFrame {
     public void paintClassifiedSamples(java.util.List<ClassifySample> samples) {
         Graphics g = this.getGraphics();
         try {
-            // 设置线条颜色为红色
-            g.setColor(Color.RED);
-
             Color[] colors = {Color.red, Color.black, Color.yellow, Color.blue};
 
             for (ClassifySample sample:samples) {
