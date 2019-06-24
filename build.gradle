@@ -19,5 +19,6 @@ buildscript{
 }
 
 dependencies {
+    compile 'com.rabbitmq:amqp-client:5.7.1'
 }
 
