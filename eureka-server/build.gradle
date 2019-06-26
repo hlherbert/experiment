@@ -1,0 +1,29 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.4.RELEASE'
+    id 'java'
+}
+
+apply plugin: "io.spring.dependency-management"
+
+group 'org.hl'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+    maven{ url 'http://maven.aliyun.com/nexus/content/repositories/jcenter'}
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Edgware.SR4"
+    }
+}
+
+dependencies {
+    compile 'org.springframework.cloud:spring-cloud-starter-eureka-server'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
