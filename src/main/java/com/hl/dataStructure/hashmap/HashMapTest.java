@@ -12,6 +12,18 @@ public class HashMapTest {
         System.out.println(v);
     }
 
+    public void testIndentityHashMap() {
+        System.out.println("Identity HashMap. Compare keys by reference." +
+                "\n using reference-equality in place of object-equality when comparing keys (and values)");
+        IdentityHashMap<Integer, String> identityHashMap = new IdentityHashMap<>();
+        Integer i1 = new Integer(1);
+        Integer i2 = new Integer(1);
+        identityHashMap.put(i1,"hello");
+        identityHashMap.put(i2,"big");
+
+        System.out.println(identityHashMap);
+    }
+
     public void testLinkedHashMap() {
         Map<Integer, String> lk = new LruMap<>(4,2,true, 2);
 
@@ -53,10 +65,7 @@ public class HashMapTest {
         }
 
         protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
-            if (size() > maxSize) {
-                return true;
-            }
-            return false;
+            return size() > maxSize;
         }
     }
 
@@ -81,8 +90,8 @@ public class HashMapTest {
     public static void main(String[] args) {
         HashMapTest test = new HashMapTest();
         //test.testHashTable();
-        test.testLinkedHashMap();
-
+        //test.testLinkedHashMap();
+        test.testIndentityHashMap();
 
     }
 }
