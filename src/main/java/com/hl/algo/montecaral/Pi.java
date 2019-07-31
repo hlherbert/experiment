@@ -1,5 +1,6 @@
 package com.hl.algo.montecaral;
 
+import java.text.MessageFormat;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -8,7 +9,7 @@ import java.util.stream.Stream;
  */
 public class Pi {
 
-    static final long N = 10000000;
+    private static final long N = 10000000;
     /**
      * 蒙特卡洛法求pi
      * 半径为1的圆O，外切正方形,边长为2
@@ -28,10 +29,10 @@ public class Pi {
      *   if (x^2+y^2 < 1):
      *     m := m+1
      * pi = 4* m/N
-     *
+     *                                                                                                                                                  jjb]k
      * @return pi
      */
-    public static double piMonteCarlo() {
+    private static double piMonteCarlo() {
         Random rnd = new Random();
         long m = Stream.generate(()->Math.pow(rnd.nextDouble(),2)+Math.pow(rnd.nextDouble(),2))
                 .limit(N)
@@ -45,12 +46,33 @@ public class Pi {
      * @return PI的逼近值
      */
     public static double pi() {
+        class Seed {
+            private double x;
+            private long i;
+
+            private Seed(double x, long i) {
+                this.x = x;
+                this.i = i;
+            }
+
+            @Override
+            public String toString() {
+                return MessageFormat.format("({0,number,#.######},{1})", x, i);
+            }
+        }
+
         final long M = 100;
         double x = piMonteCarlo();
-        for (int i=1;i<M;i++) {
-            x = (x*i+piMonteCarlo())/(i+1);
-            System.out.println(x);
-        }
+        long i = 1;
+        Seed seed = new Seed(x, i);
+        Stream.iterate(seed, (Seed s) -> new Seed((s.x * s.i + piMonteCarlo()) / (s.i + 1), s.i + 1))
+                .limit(M)
+                .forEach(System.out::println);
+
+//        for (int i=1;i<M;i++) {
+//            x = (x*i+piMonteCarlo())/(i+1);
+//            System.out.println(x);
+//        }
         return x;
     }
 
