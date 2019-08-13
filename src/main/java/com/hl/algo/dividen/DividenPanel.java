@@ -12,6 +12,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * 分形图案
+ */
 public class DividenPanel extends JPanel {
 
     private int MAX_DEPTH = 3;
