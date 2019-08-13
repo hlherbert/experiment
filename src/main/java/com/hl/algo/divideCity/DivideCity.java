@@ -72,6 +72,24 @@ public class DivideCity {
         return p;
     }
 
+
+    /**
+     * 算法：
+     * 1. a,b,c排序，按照从小到大设置为a,b,c
+     * 1.剪枝, 去掉所有degree(x) = 0的点x。  degree(x) = x的边数
+     * 2.剩下的点S中，判断 if 总点数count(S) < a+b, 则无解
+     * 3.对S的点，按照degree从大到小排序，选取前a+b个点
+     * 4.用进化算法：
+     *   （1）初始化S中a个点放入A,b个点放入B，AB组成染色体C，求染色体的适应度fit。
+     *   （2）若代数g> 最大代数G, 则未找到解，退出.
+     *   （3) 判断A，B是否全连通，如果满足，则返回A,B；否则下一步.
+     *   （4）交换A,B中一对点，形成C'=A'B',求染色体适应度fit'
+     *   （5）如果fit'<fit, 则重复（4）;否则用新的染色体作为下一代：C=C'，代数g := g+1， 重复（2）
+     * */
+    void solve() {
+
+    }
+
     public static void main(String[] args) {
         DivideCity d = new DivideCity();
         d.analysis();
