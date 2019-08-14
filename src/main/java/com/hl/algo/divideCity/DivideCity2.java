@@ -2,7 +2,6 @@ package com.hl.algo.divideCity;
 
 import java.math.BigInteger;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -10,8 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
+ * Solution Version 2
+ * <p>
  * IOI 题目:
  * n个城市，1~n
  * m个双向连接 1~m, 每个连接，连接两个城市a,b
@@ -29,9 +31,53 @@ import java.util.Set;
  * 规模：n<=2500, m<=5000
  * 时间限制：1分钟
  */
-public class DivideCity {
+public class DivideCity2 {
 
+    //基因种群数量
+    private static final int POPULATION_SIZE = 1000;
     private static Random rand = new Random(1);
+    // 基因算法的最大迭代次数
+    private final int MAX_GENERATION = 100000;
+    // 集合A大小
+    private int a;
+    // 集合B大小
+    private int b;
+    // 集合C大小
+    private int c;
+    // 旧的a,b,c
+    private int aOld, bOld, cOld;
+    //节点总数
+    private int n;
+    // 线段总数
+    private int m;
+    // 点序号 0~n-1
+    // 边
+    private Edge[] edges = new Edge[m];
+    // 需要考虑放入A,B中的点集合
+    private List<Point> S = new LinkedList<>();
+
+    // 各个点的度数
+    //private int[] degrees = new int[n];
+
+    /**
+     * 求阶乘 x!
+     *
+     * @param x
+     * @return x!
+     */
+    private static BigInteger fac(int x) {
+        BigInteger p = BigInteger.ONE;
+        for (int i = 1; i <= x; i++) {
+            p = p.multiply(BigInteger.valueOf(i));
+        }
+        return p;
+    }
+
+    public static void main(String[] args) {
+        DivideCity2 d = new DivideCity2();
+        d.analysis();
+        d.solve();
+    }
 
     /**
      * 算法分析
@@ -66,55 +112,6 @@ public class DivideCity {
         //comb number:5996747843879727010446034750704879594589642330081728571047014061721602054236827424066853583653214345317231901852809276951453488917246864436113036781633346653784807909853233470017653461203008934723274411227996848083467997291789654100090704530254271834955239446638598463463603725241943670645308798092914381274804810715111871026290607464929695407747361109295225211914838428789871075426430033781291071953038208600626781350439139868806691669992124884739760249982470690702558066909456447383538712647210360893379880018358591103233063966107174651963480056805263721863341173540121258450592572011293683093517188337776678516511322530224839233531808516500724345588736023386297879901427185034262239853347934813877454202900114017433903211294289102934197769359372256
     }
 
-
-    /**
-     * 求阶乘 x!
-     *
-     * @param x
-     * @return x!
-     */
-    private static BigInteger fac(int x) {
-        BigInteger p = BigInteger.ONE;
-        for (int i = 1; i <= x; i++) {
-            p = p.multiply(BigInteger.valueOf(i));
-        }
-        return p;
-    }
-
-    // 基因算法的最大迭代次数
-    private final int MAX_GENERATION = 100000;
-
-    // 集合A大小
-    private int a;
-
-    // 集合B大小
-    private int b;
-
-    // 集合C大小
-    private int c;
-
-    // 旧的a,b,c
-    private int aOld, bOld, cOld;
-
-    //节点总数
-    private int n;
-
-    // 线段总数
-    private int m;
-
-    // 点序号 0~n-1
-    // 边
-    private Edge[] edges = new Edge[m];
-
-    // 各个点的度数
-    //private int[] degrees = new int[n];
-
-    // 需要考虑放入A,B中的点集合
-    private List<Point> S = new LinkedList<>();
-
-    //基因种群数量
-    private static final int POPULATION_SIZE = 1000;
-
     /**
      * 算法：
      * 0.预处理, a,b,c排序，按照从小到大设置为a,b,c
@@ -132,7 +129,7 @@ public class DivideCity {
         input();
         prepare();
         cut();
-        geneAlgo();
+        dividen();
     }
 
     // 输入
@@ -224,100 +221,58 @@ public class DivideCity {
         System.out.println("S.size = " + S.size());
     }
 
-
-    // 进化算法
+    // 分治算法
     // 返回一个可行解
     // 如果没有可行解返回null
-    private Chrosome geneAlgo() {
-//    （1）初始化S中, 随机选择a个点放入A, b个点放入B，AB组成染色体C，求染色体的适应度fit。
-//    （2）若代数g > 最大代数G, 则未找到解，退出.
-//    （3)判断A，B是否全连通，如果满足，则返回A, B；否则下一步.
-//    （4）交换A, B中一对点，形成C '=A' B ',求染色体适应度fit'
-//    （5）如果fit '<fit, 则重复（4）;否则用新的染色体作为下一代：C=C'，代数g:=g + 1，重复（2）
-        System.out.println("geneAlgo ...");
+    private Chrosome dividen() {
+//      （1）将S分为多个子图，每个子图是连通的
+//      (2) 找到大小最大的两个子图B,A
+//      (3) 如果（B.size >= b && A.size >= a） 则找到可行解.
+//         B中去掉B.size -b个点，并且保证剩下的点是联通的
+//         A中去掉A.size -a个点，并且保证剩下的点是联通的
+//         输出可行解A,B
+//      (4) 如果B.size >= a+b， 则有解
+//     （5）否则无解
+        System.out.println("dividen ...");
+        List<List<Point>> subGraphs = Chrosome.divideConnectGraphs(S, edges);
 
-        // 初始化种群
-        List<Chrosome> population = new ArrayList<>();
-        for (int i = 0; i < POPULATION_SIZE; i++) {
-            Chrosome chrome = new Chrosome();
-            geneInit(chrome);
-            population.add(chrome);
+
+        List<List<Point>> maxGraphs = subGraphs.stream().sorted(Comparator.comparing((List<Point> graph) -> graph.size()).reversed()).limit(2).collect(Collectors.toList());
+
+        List<Point> B = maxGraphs.get(0);
+        List<Point> A = maxGraphs.get(1);
+        if (B.size() >= b && A.size() >= a) {
+            Chrosome chrosome = new Chrosome();
+            chrosome.setA(A);
+            chrosome.setB(B);
+            chrosome.setEdges(edges);
+            printSolve(A, B);
+            return chrosome;
+        } else if (B.size() >= a + b) {
+            Chrosome chrosome = new Chrosome();
+            chrosome.setA(A);
+            chrosome.setB(B);
+            chrosome.setEdges(edges);
+            printSolve(A, B);
+            return chrosome;
+        } else {
+            System.out.println("No Answer!");
+            return null;
         }
-
-        for (int g = 0; g < MAX_GENERATION; g++) {
-            if (g % 1000 == 0)
-                System.out.println("gen:" + g);
-
-            for (int i = 0; i < POPULATION_SIZE / 4; i++) {
-                // 迭代
-                Chrosome c1 = population.get(i * 2);
-                int fit = c1.fit();
-                if (c1.isSolved(fit)) {
-                    System.out.println(MessageFormat.format("Solved!A:{0}  B:{1}", c1.getA(), c1.getB()));
-                    proveConnection(c1.getA());
-                    proveConnection(c1.getB());
-                    return c1;
-                }
-
-
-                // 交叉
-                Chrosome c2 = population.get(i * 2 + 1);
-                int fit2 = c2.fit();
-                if (c2.isSolved(fit2)) {
-                    System.out.println(MessageFormat.format("Solved!A:{0}  B:{1}", c2.getA(), c2.getB()));
-                    proveConnection(c2.getA());
-                    proveConnection(c2.getB());
-                    return c2;
-                }
-
-                Pair<Chrosome> childPair = Chrosome.crossOver(c1, c2);
-                // 子代存在 i*3， i*4
-                population.set(i * 2 + POPULATION_SIZE / 2, childPair.a);
-                population.set(i * 2 + 1 + POPULATION_SIZE / 2, childPair.b);
-            }
-            // 对下一代按照适应度重新排序
-            population.sort(Comparator.comparing(Chrosome::fit).reversed());
-        }
-
-        System.out.println("No Answer! Exceed max generation=" + MAX_GENERATION);
-        return null;
     }
 
-    // 证明点集是连通图
-    private void proveConnection(List<Point> points) {
+    private void printSolve(List<Point> A, List<Point> B) {
+        System.out.println(MessageFormat.format("Solved!A:{0}  B:{1}", A, B));
+        proveConnection(A, a);
+        proveConnection(B, b);
+    }
+
+    // 证明点集是连通图, 并打印出大小为nPoints的子图
+    private void proveConnection(List<Point> points, int nPoints) {
         for (int i = 0; i < points.size(); i++) {
             Point p1 = points.get(i);
             System.out.println(p1 + " neighbours:" + p1.neighbourPoints);
         }
 
-    }
-
-    // 进化算法初始化, 生成第一代种子
-    private void geneInit(Chrosome c) {
-        LinkedList<Point> S2 = new LinkedList<>();
-        S2.addAll(S);
-        List<Point> A = c.getA();
-        List<Point> B = c.getB();
-        A.clear();
-        B.clear();
-
-        // 前a个放入A
-        for (int i = 0; i < a; i++) {
-            int p = rand.nextInt(S2.size());
-            A.add(S2.remove(p));
-        }
-
-        // b个放入B
-        for (int i = 0; i < b; i++) {
-            int p = rand.nextInt(S2.size());
-            B.add(S2.remove(p));
-        }
-    }
-
-    public static void main(String[] args) {
-        DivideCity d = new DivideCity();
-        d.analysis();
-        //System.out.println(fac(0));
-        d.solve();
     }
 }

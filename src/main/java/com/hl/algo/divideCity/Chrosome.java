@@ -78,7 +78,7 @@ public class Chrosome {
     }
 
     // 用flood法求图（Points, Edges）的最大生成树的点数
-    private static int floodTreeSize(List<Point> points, Edge[] edges) {
+    public static List<List<Point>> divideConnectGraphs(List<Point> points, Edge[] edges) {
         // 候选点集：S，最先是所有点
         // 已连通集：P
         // i: 连通集的索引
@@ -110,7 +110,12 @@ public class Chrosome {
             }
             listP.add(P);
         }
+        return listP;
+    }
 
+    // 用flood法求图（Points, Edges）的最大生成树的点数
+    private static int floodTreeSize(List<Point> points, Edge[] edges) {
+        List<List<Point>> listP = divideConnectGraphs(points, edges);
         int maxSize = listP.stream().mapToInt(pts -> pts.size()).max().getAsInt();
         return maxSize;
     }
