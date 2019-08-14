@@ -241,8 +241,6 @@ public class DivideCity {
         // population的后半部分=null
         population.addAll(Collections.nCopies(POPULATION_SIZE/2, null));
 
-
-
         for (int g = 0; g < MAX_GENERATION; g++) {
             System.out.println("gen:" + g);
 
