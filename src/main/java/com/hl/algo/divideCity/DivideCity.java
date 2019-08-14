@@ -4,11 +4,12 @@ import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * IOI 题目:
@@ -30,6 +31,7 @@ import java.util.Random;
  */
 public class DivideCity {
 
+    private static Random rand = new Random(1);
 
     /**
      * 算法分析
@@ -137,11 +139,11 @@ public class DivideCity {
     private void input() {
         System.out.println("input ...");
 
-        n = 100;
-        m = 80;
+        n = 2500;
+        m = 5000;
 
-        a = 3;
-        b = 3;
+        a = 5;
+        b = 5;
         c = n - a - b;
 
         aOld = a;
@@ -154,12 +156,15 @@ public class DivideCity {
         // degrees = new int[n];
 
         // 随机生成边
-        Random rand = new Random(1);
+        Set<Edge> edgeSet = new HashSet<Edge>();
         for (int i = 0; i < m; i++) {
-            edges[i] = new Edge();
-            edges[i].a = rand.nextInt(n);
-            while ((edges[i].b = rand.nextInt(n)) == edges[i].a) {
-            }
+            Edge edge = new Edge();
+            edge.a = rand.nextInt(n);
+            do {
+                edge.b = rand.nextInt(n);
+            } while (edge.a == edge.b || edgeSet.contains(edge));
+            edges[i] = edge;
+            edgeSet.add(edge);
         }
     }
 
@@ -233,37 +238,42 @@ public class DivideCity {
 
         // 初始化种群
         List<Chrosome> population = new ArrayList<>();
-        for (int i=0;i<POPULATION_SIZE/2;i++) {
+        for (int i = 0; i < POPULATION_SIZE; i++) {
             Chrosome chrome = new Chrosome();
             geneInit(chrome);
             population.add(chrome);
         }
-        // population的后半部分=null
-        population.addAll(Collections.nCopies(POPULATION_SIZE/2, null));
 
         for (int g = 0; g < MAX_GENERATION; g++) {
-            System.out.println("gen:" + g);
+            if (g % 1000 == 0)
+                System.out.println("gen:" + g);
 
-            for (int i=0;i<POPULATION_SIZE/2;i++) {
+            for (int i = 0; i < POPULATION_SIZE / 4; i++) {
                 // 迭代
-                Chrosome c = population.get(i);
-                int fit = c.fit();
-                if (c.isSolved(fit)) {
-                    System.out.println(MessageFormat.format("Solved!A:{0}  B:{1}", c.getA(), c.getB()));
-                    return c;
+                Chrosome c1 = population.get(i * 2);
+                int fit = c1.fit();
+                if (c1.isSolved(fit)) {
+                    System.out.println(MessageFormat.format("Solved!A:{0}  B:{1}", c1.getA(), c1.getB()));
+                    proveConnection(c1.getA());
+                    proveConnection(c1.getB());
+                    return c1;
                 }
 
-                Chrosome c2;
-                int fit2 = 0;
-                do {
-                    // 交叉
-                    c2 = c.clone();
-                    c2.crossOver();
-                    fit2 = c2.fit();
-                } while (fit2 < fit);
 
-                // 子代存在 i+ POPSIZE/2
-                population.set(i+POPULATION_SIZE/2, c2);
+                // 交叉
+                Chrosome c2 = population.get(i * 2 + 1);
+                int fit2 = c2.fit();
+                if (c2.isSolved(fit2)) {
+                    System.out.println(MessageFormat.format("Solved!A:{0}  B:{1}", c2.getA(), c2.getB()));
+                    proveConnection(c2.getA());
+                    proveConnection(c2.getB());
+                    return c2;
+                }
+
+                Pair<Chrosome> childPair = Chrosome.crossOver(c1, c2);
+                // 子代存在 i*3， i*4
+                population.set(i * 2 + POPULATION_SIZE / 2, childPair.a);
+                population.set(i * 2 + 1 + POPULATION_SIZE / 2, childPair.b);
             }
             // 对下一代按照适应度重新排序
             population.sort(Comparator.comparing(Chrosome::fit).reversed());
@@ -273,9 +283,17 @@ public class DivideCity {
         return null;
     }
 
+    // 证明点集是连通图
+    private void proveConnection(List<Point> points) {
+        for (int i = 0; i < points.size(); i++) {
+            Point p1 = points.get(i);
+            System.out.println(p1 + " neighbours:" + p1.neighbourPoints);
+        }
+
+    }
+
     // 进化算法初始化, 生成第一代种子
     private void geneInit(Chrosome c) {
-        Random rand = new Random();
         LinkedList<Point> S2 = new LinkedList<>();
         S2.addAll(S);
         List<Point> A = c.getA();

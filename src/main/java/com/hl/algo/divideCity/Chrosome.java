@@ -137,9 +137,86 @@ public class Chrosome {
         return false;
     }
 
-    // 交叉
+    // 交叉, 生成两个孩子
+    public static Pair<Chrosome> crossOver(Chrosome c1, Chrosome c2) {
+        // 单点交叉
+
+        //	Because we use the Model1and its gene is permutation encoding (Each gene
+//			is unique in a chromosome), the single point crossover changes to:
+//		Single point crossover - one crossover point is selected, till this point
+//		the permutation is copied from the first parent, then the second parent
+//		is scanned and if the number is not yet in the offspring it is added
+//		E.g.
+//		([1 2 3 4 5] 6 7 8 9) + ([4 5 3 6 8] 9 7 2 1) =>
+//		   ([1 2 3 4 5] 6 8 9 7) + ([4 5 3 6 8] 1 2 7 9)
+
+        int nGene = c1.A.size() + c1.B.size();
+        int crossoverPnt = rand.nextInt(nGene);
+
+        Chrosome child1 = c1.clone();
+        Chrosome child2 = c2.clone();
+
+        for (int i = 0; i < crossoverPnt; i++) {
+            Point gene1 = c1.getGene(i);
+            Point gene2 = c2.getGene(i);
+            child1.setGene(i, gene1);
+            child2.setGene(i, gene2);
+        }
+        int k = crossoverPnt;
+        for (int i = 0; i < nGene && k < nGene; i++) {
+            Point gene2 = c2.getGene(i);
+            if (!child1.containGene(gene2, 0, crossoverPnt)) {
+                child1.setGene(k, gene2);
+                k++;
+            }
+        }
+
+
+        k = crossoverPnt;
+        for (int i = 0; i < nGene && k < nGene; i++) {
+            Point gene1 = c1.getGene(i);
+            if (!child2.containGene(gene1, 0, crossoverPnt)) {
+                child2.setGene(k, gene1);
+                k++;
+            }
+        }
+
+        Pair<Chrosome> pair = new Pair<>();
+        pair.a = child1;
+        pair.b = child2;
+        return pair;
+    }
+
+    public Point getGene(int index) {
+        if (index < A.size()) {
+            return A.get(index);
+        } else {
+            return B.get(index - A.size());
+        }
+    }
+
+    public void setGene(int index, Point p) {
+        if (index < A.size()) {
+            A.set(index, p);
+        } else {
+            B.set(index - A.size(), p);
+        }
+    }
+
+    private boolean containGene(Point gene, int rangeLeft, int rangeRight) {
+        int id = gene.id;
+        for (int i = rangeLeft; i < rangeRight; i++) {
+            Point g = this.getGene(i);
+            if (g.id == id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 变异
     // 从A,B中各选一个点互相交换
-    public void crossOver() {
+    public void mutation() {
         int i = rand.nextInt(A.size());
         int j = rand.nextInt(B.size());
         Point pntA = A.get(i);
