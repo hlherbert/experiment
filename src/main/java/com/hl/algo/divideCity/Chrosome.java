@@ -64,8 +64,8 @@ public class Chrosome {
         }
 
         // 对本问题，适应度= A中连通点+B中连通点数
-        int aSize = floodTreeSize(A, edges);
-        int bSize = floodTreeSize(B, edges);
+        int aSize = floodTreeSize(A);
+        int bSize = floodTreeSize(B);
         int fit = aSize + bSize;
         fitness = fit;
         return fit;
@@ -78,7 +78,7 @@ public class Chrosome {
     }
 
     // 用flood法求图（Points, Edges）的最大生成树的点数
-    public static List<List<Point>> divideConnectGraphs(List<Point> points, Edge[] edges) {
+    public static List<Graph> divideConnectGraphs(Graph graph) {
         // 候选点集：S，最先是所有点
         // 已连通集：P
         // i: 连通集的索引
@@ -89,8 +89,40 @@ public class Chrosome {
         // 4.i++. 将P归为P[i]，清空P，跳到步骤1
         // 5.找出所有连通集P[i]中size最大值，做的最大生成树的点数。
 
-        List<Point> S = new LinkedList<>();
-        S.addAll(points);
+        Graph graphS = graph.clone();
+        List<Graph> listP = new ArrayList<>();
+
+        List<Point> S = graphS.getPoints();
+        while (!S.isEmpty()) {
+            List<Point> P = new ArrayList<>();
+            Point p = S.remove(rand.nextInt(S.size()));
+            P.add(p);
+
+            Point p2;
+            for (; ; ) {
+                p2 = findConnectPoint(S, P);
+                if (p2 == null) {
+                    break;
+                }
+                S.remove(p2);
+                P.add(p2);
+            }
+            listP.add(new Graph(P));
+        }
+        return listP;
+    }
+
+    // 用flood法求图（Points, Edges）的最大生成树的点数
+    public static List<List<Point>> divideConnectGraphs(List<Point> S) {
+        // 候选点集：S，最先是所有点
+        // 已连通集：P
+        // i: 连通集的索引
+        // 0.当S为空时，跳到步骤5.
+        // 1.从S中任选一个点p, 加入P
+        // 2.判断S中是否有其他点p2和P相连，如果有，则将p2加入到P。
+        // 3.重复步骤2，直到没有可选的点能再加入P。
+        // 4.i++. 将P归为P[i]，清空P，跳到步骤1
+        // 5.找出所有连通集P[i]中size最大值，做的最大生成树的点数。
 
         List<List<Point>> listP = new ArrayList<>();
 
@@ -101,7 +133,7 @@ public class Chrosome {
 
             Point p2;
             for (; ; ) {
-                p2 = findConnectPoint(S, P, edges);
+                p2 = findConnectPoint(S, P);
                 if (p2 == null) {
                     break;
                 }
@@ -114,15 +146,15 @@ public class Chrosome {
     }
 
     // 用flood法求图（Points, Edges）的最大生成树的点数
-    private static int floodTreeSize(List<Point> points, Edge[] edges) {
-        List<List<Point>> listP = divideConnectGraphs(points, edges);
+    private static int floodTreeSize(List<Point> points) {
+        List<List<Point>> listP = divideConnectGraphs(points);
         int maxSize = listP.stream().mapToInt(pts -> pts.size()).max().getAsInt();
         return maxSize;
     }
 
     // 从集合S中找到一个点和集合P相连接
     // 如果没找到返回null
-    private static Point findConnectPoint(List<Point> S, List<Point> P, Edge[] edges) {
+    private static Point findConnectPoint(List<Point> S, List<Point> P) {
         for (Point p : S) {
             if (isConnect(p, P)) {
                 return p;
@@ -186,9 +218,7 @@ public class Chrosome {
             }
         }
 
-        Pair<Chrosome> pair = new Pair<>();
-        pair.a = child1;
-        pair.b = child2;
+        Pair<Chrosome> pair = new Pair<>(child1,child2);
         return pair;
     }
 

@@ -3,8 +3,10 @@ package com.hl.algo.divideCity;
 import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -73,11 +75,6 @@ public class DivideCity2 {
         return p;
     }
 
-    public static void main(String[] args) {
-        DivideCity2 d = new DivideCity2();
-        d.analysis();
-        d.solve();
-    }
 
     /**
      * 算法分析
@@ -224,7 +221,7 @@ public class DivideCity2 {
     // 分治算法
     // 返回一个可行解
     // 如果没有可行解返回null
-    private Chrosome dividen() {
+    private Pair<Graph> dividen() {
 //      （1）将S分为多个子图，每个子图是连通的
 //      (2) 找到大小最大的两个子图B,A
 //      (3) 如果（B.size >= b && A.size >= a） 则找到可行解.
@@ -234,31 +231,62 @@ public class DivideCity2 {
 //      (4) 如果B.size >= a+b， 则有解
 //     （5）否则无解
         System.out.println("dividen ...");
-        List<List<Point>> subGraphs = Chrosome.divideConnectGraphs(S, edges);
-
-
-        List<List<Point>> maxGraphs = subGraphs.stream().sorted(Comparator.comparing((List<Point> graph) -> graph.size()).reversed()).limit(2).collect(Collectors.toList());
-
-        List<Point> B = maxGraphs.get(0);
-        List<Point> A = maxGraphs.get(1);
-        if (B.size() >= b && A.size() >= a) {
-            Chrosome chrosome = new Chrosome();
-            chrosome.setA(A);
-            chrosome.setB(B);
-            chrosome.setEdges(edges);
-            printSolve(A, B);
-            return chrosome;
-        } else if (B.size() >= a + b) {
-            Chrosome chrosome = new Chrosome();
-            chrosome.setA(A);
-            chrosome.setB(B);
-            chrosome.setEdges(edges);
-            printSolve(A, B);
-            return chrosome;
-        } else {
+        Graph graphS = new Graph(S);
+        Pair<Graph> solution = dividenTo2Graph(graphS);
+        if (solution == null) {
             System.out.println("No Answer!");
             return null;
+        } else {
+            System.out.println("Solve!");
+            printSolve(solution.a.getPoints(), solution.b.getPoints());
+            return solution;
         }
+    }
+
+    // 将S分为多个连通子图，其中最大的两个为B,A
+    // 如果（B.size >= b && A.size >= a） 则找到可行解A,B.否则继续
+    // 如果B.size >= a+b， 则继续寻找
+    // 将B中去掉任意一个边，继续dividenTo2Graph(B)
+    private Pair<Graph> dividenTo2Graph(Graph graphS) {
+        List<Graph> subGraphs = Chrosome.divideConnectGraphs(graphS);
+        List<Graph> maxGraphs = subGraphs.stream().sorted(Comparator.comparing((Graph graph) -> graph.getPoints().size()).reversed()).limit(2).collect(Collectors.toList());
+        Graph graphB = maxGraphs.get(0);
+        List<Point> B = graphB.getPoints();
+
+        Graph graphA = null;
+        List<Point> A = null;
+        if (maxGraphs.size() >= 2) {
+            graphA = maxGraphs.get(1);
+            A = graphA.getPoints();
+        }
+
+        if (B.size() >= b && A !=null && A.size() >= a) {
+            return new Pair<>(graphA, graphB);
+        } else if (B.size() >= a + b) {
+            // 先优化去掉B中每个点p中，相邻点中不属于B的点
+            graphB.cutNeighbourPoints();
+
+            // 去掉B中任意一个点的某个边，dividenTo2Graph(B)继续划分，寻找是否有可行解
+            Iterator<Point> it = B.iterator();
+            while (it.hasNext()) {
+                Point p = it.next();
+                Iterator<Integer> itNeighbour = p.neighbourPoints.iterator();
+                while (itNeighbour.hasNext()) {
+                    Integer neighbourId = itNeighbour.next();
+                    itNeighbour.remove();
+                    Pair<Graph> pair = dividenTo2Graph(graphB);
+                    if (pair != null) {
+                        return pair;
+                    }
+                    // 加回去
+                    p.neighbourPoints.add(neighbourId);
+                }
+            }
+        }
+
+        System.out.println("No Answer!");
+        return null;
+
     }
 
     private void printSolve(List<Point> A, List<Point> B) {
@@ -274,5 +302,12 @@ public class DivideCity2 {
             System.out.println(p1 + " neighbours:" + p1.neighbourPoints);
         }
 
+    }
+
+
+    public static void main(String[] args) {
+        DivideCity2 d = new DivideCity2();
+        d.analysis();
+        d.solve();
     }
 }
