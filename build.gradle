@@ -7,13 +7,6 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-repositories {
-    mavenLocal()
-    maven { url "http://maven.aliyun.com/nexus/content/groups/public/"}
-    mavenCentral()
-    jcenter()
-}
-
 buildscript{
     repositories{
         mavenCentral()
@@ -27,3 +20,11 @@ dependencies {
     compile 'com.alibaba:fastjson:1.2.62'
 }
 
+allprojects {
+    repositories {
+        mavenLocal()
+        maven { url "http://maven.aliyun.com/nexus/content/groups/public/"}
+        mavenCentral()
+        jcenter()
+    }
+}
