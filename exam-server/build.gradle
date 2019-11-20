@@ -5,17 +5,9 @@ plugins {
 
 apply plugin: 'io.spring.dependency-management'
 
-configurations {
-    // 避免slf4j和springboot冲突
-    all*.exclude group:'ch.qos.logback', module:'logback-classic'
-
-}
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.springframework.boot:spring-boot-starter-aop'
-    compile 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.0.0'
-    compile 'mysql:mysql-connector-java'
     compile project(":security")
 
     testCompile 'junit:junit'

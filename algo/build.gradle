@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+group 'org.hl'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.rabbitmq:amqp-client:5.7.1'
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile 'ch.qos.logback:logback-classic:1.1.7'
+    compile 'com.alibaba:fastjson:1.2.62'
+}
