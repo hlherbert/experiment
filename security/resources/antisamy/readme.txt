@@ -1,0 +1,1 @@
+本目录存放的是XssDetector要用到的Policy文件,用于指定Xss检测的规则。Xss检查使用了antisamy库。

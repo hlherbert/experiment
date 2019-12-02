@@ -1,4 +1,4 @@
-package com.hl.experiment.security.xss;//package com.hl.experiment.security.xss;
+package com.hl.experiment.security.xss;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -9,61 +9,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Iterator;
-import java.util.Map;
 
+/**
+ * 请求包装器，支持重复读body
+ */
 public class XssRequestWrapper extends HttpServletRequestWrapper {
-
-    private static XssDetector xssDetector = XssDetector.getNormalDetector();
 
     private final byte[] body;
 
     public XssRequestWrapper(HttpServletRequest request) throws IOException {
         super(request);
         body = toByteArray(request.getInputStream());
-    }
-
-    @Override
-    public String getParameter(String paramString) {
-        String str = super.getParameter(paramString);
-        if (str == null)
-            return null;
-        return xssClean(str);
-    }
-
-    @Override
-    public String getHeader(String paramString) {
-        String str = super.getHeader(paramString);
-        if (str == null)
-            return null;
-        return xssClean(str);
-    }
-
-    @Override
-    public Map<String, String[]> getParameterMap() {
-        Map<String, String[]> request_map = super.getParameterMap();
-        Iterator iterator = request_map.entrySet().iterator();
-        System.out.println("request_map" + request_map.size());
-        while (iterator.hasNext()) {
-            Map.Entry me = (Map.Entry) iterator.next();
-            String[] values = (String[]) me.getValue();
-            for (int i = 0; i < values.length; i++) {
-                values[i] = xssClean(values[i]);
-            }
-        }
-        return request_map;
-    }
-
-    @Override
-    public String[] getParameterValues(String paramString) {
-        String[] arrayOfString1 = super.getParameterValues(paramString);
-        if (arrayOfString1 == null)
-            return null;
-        int i = arrayOfString1.length;
-        String[] arrayOfString2 = new String[i];
-        for (int j = 0; j < i; j++)
-            arrayOfString2[j] = xssClean(arrayOfString1[j]);
-        return arrayOfString2;
     }
 
     @Override
@@ -116,7 +72,4 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         return out.toByteArray();
     }
 
-    private String xssClean(String value) {
-        return xssDetector.xssClean(value);
-    }
 }

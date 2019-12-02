@@ -17,29 +17,34 @@ public class XssConfig {
     private boolean enabled = true;
 
     /**
-     * 需要检查的URL模式，允许多个用逗号分隔
+     * 需要检查的URL模式，允许多个用逗号分隔。例如/**
+     * 默认: /**
      */
     @Value("${security.xss.urlPatterns:/**}")
     private String urlPatterns = "/**";
 
     /**
      * 不检查的URL模式，允许多个用逗号分隔
+     * 默认: 空
+     * 例如 /abc/**
      */
     @Value("${security.xss.excludes:}")
     private String excludes = "";
 
     /**
      * 是否对请求参数进行检查
+     * 默认开启
      */
     @Value("${security.xss.checkParam:true}")
     private boolean checkParam = true;
 
     /**
      * 是否对请求体进行检查
+     * 默认开启
      * 开启后, 只对content-type = application/json, plain/text的请求体检查. 不对字节流型请求体检查
      */
-    @Value("${security.xss.checkBody:false}")
-    private boolean checkBody = false;
+    @Value("${security.xss.checkBody:true}")
+    private boolean checkBody = true;
 
     public boolean getEnabled() {
         return enabled;

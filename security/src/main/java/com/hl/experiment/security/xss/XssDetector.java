@@ -39,30 +39,6 @@ public class XssDetector {
     private static final XssDetector NORMAL_DETECTOR;
 
     private static final int REGEX_FLAGS_SI = Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
-    private static final Pattern P_COMMENTS = Pattern.compile("<!--(.*?)-->", Pattern.DOTALL);
-    private static final Pattern P_COMMENT = Pattern.compile("^!--(.*)--$", REGEX_FLAGS_SI);
-    private static final Pattern P_TAGS = Pattern.compile("<(.*?)>", Pattern.DOTALL);
-    private static final Pattern P_END_TAG = Pattern.compile("^/([a-z0-9]+)", REGEX_FLAGS_SI);
-    private static final Pattern P_START_TAG = Pattern.compile("^([a-z0-9]+)(.*?)(/?)$", REGEX_FLAGS_SI);
-    private static final Pattern P_QUOTED_ATTRIBUTES = Pattern.compile("([a-z0-9]+)=([\"'])(.*?)\\2", REGEX_FLAGS_SI);
-    private static final Pattern P_UNQUOTED_ATTRIBUTES = Pattern.compile("([a-z0-9]+)(=)([^\"\\s']+)", REGEX_FLAGS_SI);
-    private static final Pattern P_PROTOCOL = Pattern.compile("^([^:]+):", REGEX_FLAGS_SI);
-    private static final Pattern P_ENTITY = Pattern.compile("&#(\\d+);?");
-    private static final Pattern P_ENTITY_UNICODE = Pattern.compile("&#x([0-9a-f]+);?");
-    private static final Pattern P_ENCODE = Pattern.compile("%([0-9a-f]{2});?");
-    private static final Pattern P_VALID_ENTITIES = Pattern.compile("&([^&;]*)(?=(;|&|$))");
-    private static final Pattern P_VALID_QUOTES = Pattern.compile("(>|^)([^<]+?)(<|$)", Pattern.DOTALL);
-    private static final Pattern P_END_ARROW = Pattern.compile("^>");
-    private static final Pattern P_BODY_TO_END = Pattern.compile("<([^>]*?)(?=<|$)");
-    private static final Pattern P_XML_CONTENT = Pattern.compile("(^|>)([^<]*?)(?=>)");
-    private static final Pattern P_STRAY_LEFT_ARROW = Pattern.compile("<([^>]*?)(?=<|$)");
-    private static final Pattern P_STRAY_RIGHT_ARROW = Pattern.compile("(^|>)([^<]*?)(?=>)");
-    private static final Pattern P_AMP = Pattern.compile("&");
-    private static final Pattern P_QUOTE = Pattern.compile("\"");
-    private static final Pattern P_LEFT_ARROW = Pattern.compile("<");
-    private static final Pattern P_RIGHT_ARROW = Pattern.compile(">");
-    private static final Pattern P_BOTH_ARROWS = Pattern.compile("<>");
-    private static final Pattern P_DOUBLE_QUOT = Pattern.compile("&quot;");
 
     // XSS 敏感模式
     private static final Pattern P_SCRIPT = Pattern.compile("<.*\\s+script", REGEX_FLAGS_SI);
@@ -71,8 +47,7 @@ public class XssDetector {
     private static final Pattern P_IFRAME = Pattern.compile("<.*\\s+iframe", REGEX_FLAGS_SI);
     private static final Pattern P_OBJECT = Pattern.compile("<.*\\s+object", REGEX_FLAGS_SI);
 
-    private static final Pattern[] DANGER_PATTERNS = new Pattern[]{P_SCRIPT, P_JAVASCRIPT, P_ONEVENT, P_IFRAME};
-
+    private static final Pattern[] DANGER_PATTERNS = new Pattern[]{P_SCRIPT, P_JAVASCRIPT, P_ONEVENT, P_IFRAME, P_OBJECT};
 
     static {
         STRICT_DETECTOR = new XssDetector("/antisamy/antisamy-tinymce.xml");
@@ -81,7 +56,7 @@ public class XssDetector {
 
     private AntiSamy antiSamy = null;
 
-    public XssDetector(String policyPath) {
+    protected XssDetector(String policyPath) {
         try {
             URL policyUrl = XssDetector.class.getResource(policyPath);
             if (policyUrl == null) {
@@ -132,25 +107,7 @@ public class XssDetector {
      * @return true:通过检查; false:未通过检查,含有xss风险
      */
     public boolean passXssCheck(String html) {
-        if (antiSamy == null) {
-            return true;
-        }
         return checkText(html);
-        // 不用antisamy检查，antisamy只支持html的文本过滤，会导致 abc<4也认为是非法的.   del by huangli {{
-//        try {
-//            final CleanResults cr = antiSamy.scan(html);
-//            // 安全的HTML输出
-//            if (cr.getNumberOfErrors() > 0) {
-//                return false;
-//            }
-//        } catch (ScanException e) {
-//            logger.error("scan error.", e);
-//            return false;
-//        } catch (PolicyException e) {
-//            logger.error("policy read error.", e);
-//            return false;
-//        }
-        // }}
     }
 
     /**
