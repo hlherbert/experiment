@@ -5,10 +5,17 @@ plugins {
 
 apply plugin: 'io.spring.dependency-management'
 
+def jdkHome = System.getenv("JAVA_HOME")
+
+import javax.tools.ToolProvider
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile project(":security")
+    //compile files("$jdkHome/lib/tools.jar")
+    //compile 'com.sun.tools'
+
+    compile(files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs()))
 
     testCompile 'junit:junit'
     testCompile 'org.springframework.boot:spring-boot-starter-test'

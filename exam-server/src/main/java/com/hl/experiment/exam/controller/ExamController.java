@@ -7,31 +7,44 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 考试控制器
+ */
 @RestController
 public class ExamController {
 
-    private String hello;
-    private String hello2;
+    private String name;
+    private String age;
 
-    @GetMapping("/hello")
-    public String getHello() {
-        return hello;
+    /**
+     * 获取学生
+     * @return 学生
+     */
+    @GetMapping("/student")
+    public String getStudent() {
+        return name;
     }
 
-    @GetMapping("/hello2")
-    public String getHello2() {
-        return hello2;
+    /**
+     * 修改学生
+     * @param student 学生
+     * @return 学生姓名
+     */
+    @PutMapping("/student")
+    public String editStudent(@RequestBody String student) {
+        name = student;
+        return name;
     }
 
-    @PutMapping("/hello")
-    public String saveHello(@RequestBody String text) {
-        hello = text;
-        return hello;
-    }
-
-    @PostMapping("/hello2")
-    public void saveHello2(@RequestParam String hello1, @RequestParam String hello2) {
-        hello = hello1;
-        this.hello2 = hello2;
+    /**
+     * 新增Student
+     * @param name this is name
+     * @param age this is age
+     */
+    @PostMapping("/student")
+    public void addStudent(@RequestParam("name") String name,
+                           @RequestParam("age") String age) {
+        this.name = name;
+        this.age = age;
     }
 }
