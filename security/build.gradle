@@ -8,5 +8,6 @@ apply plugin: 'io.spring.dependency-management'
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.owasp.antisamy:antisamy:1.5.8'
+    compile 'com.alibaba:fastjson:1.2.61'
 }
 

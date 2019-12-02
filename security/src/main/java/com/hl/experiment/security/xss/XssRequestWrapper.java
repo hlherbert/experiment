@@ -1,91 +1,75 @@
-//package com.hl.experiment.security.xss;
-//
-//import org.owasp.validator.html.AntiSamy;
-//import org.owasp.validator.html.CleanResults;
-//import org.owasp.validator.html.Policy;
-//import org.owasp.validator.html.PolicyException;
-//import org.owasp.validator.html.ScanException;
-//
-//import javax.servlet.http.HttpServletRequest;
-//import javax.servlet.http.HttpServletRequestWrapper;
-//import java.util.Iterator;
-//import java.util.Map;
-//
-//public class XssRequestWrapper extends HttpServletRequestWrapper {
-//
-//    private static Policy policy = null;
-//
-//    static {
-//        String path = XssRequestWrapper.class.getClassLoader().getResource("antisamy-anythinggoes.xml").getFile();
-//        System.out.println("policy_filepath:" + path);
-//        if (path.startsWith("file")) {
-//            path = path.substring(6);
-//        }
-//        try {
-//            policy = Policy.getInstance(path);
-//        } catch (PolicyException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    public XssRequestWrapper(HttpServletRequest request) {
-//        super(request);
-//    }
-//
-//    public String getParameter(String paramString) {
-//        String str = super.getParameter(paramString);
-//        if (str == null)
-//            return null;
-//        return xssClean(str);
-//    }
-//
-//    public String getHeader(String paramString) {
-//        String str = super.getHeader(paramString);
-//        if (str == null)
-//            return null;
-//        return xssClean(str);
-//    }
-//
-//    @SuppressWarnings("rawtypes")
-//    public Map<String, String[]> getParameterMap() {
-//        Map<String, String[]> request_map = super.getParameterMap();
-//        Iterator iterator = request_map.entrySet().iterator();
-//        System.out.println("request_map" + request_map.size());
-//        while (iterator.hasNext()) {
-//            Map.Entry me = (Map.Entry) iterator.next();
-//            String[] values = (String[]) me.getValue();
-//            for (int i = 0; i < values.length; i++) {
-//                values[i] = xssClean(values[i]);
-//            }
-//        }
-//        return request_map;
-//    }
-//
-//    public String[] getParameterValues(String paramString) {
-//        String[] arrayOfString1 = super.getParameterValues(paramString);
-//        if (arrayOfString1 == null)
-//            return null;
-//        int i = arrayOfString1.length;
-//        String[] arrayOfString2 = new String[i];
-//        for (int j = 0; j < i; j++)
-//            arrayOfString2[j] = xssClean(arrayOfString1[j]);
-//        return arrayOfString2;
-//    }
-//
-//    private String xssClean(String value) {
-//        AntiSamy antiSamy = new AntiSamy();
-//        try {
-//            final CleanResults cr = antiSamy.scan(value, policy);
-//            if (cr.getNumberOfErrors() > 0) {
-//                System.out.println(cr.getErrorMessages());
-//            }
-//            // 安全的HTML输出
-//            return cr.getCleanHTML();
-//        } catch (ScanException e) {
-//            e.printStackTrace();
-//        } catch (PolicyException e) {
-//            e.printStackTrace();
-//        }
-//        return value;
-//    }
-//}
+package com.hl.experiment.security.xss;
+
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+/**
+ * 请求包装器，支持重复读body
+ */
+public class XssRequestWrapper extends HttpServletRequestWrapper {
+
+    private final byte[] body;
+
+    public XssRequestWrapper(HttpServletRequest request) throws IOException {
+        super(request);
+        body = toByteArray(request.getInputStream());
+    }
+
+    @Override
+    public BufferedReader getReader() throws IOException {
+        return new BufferedReader(new InputStreamReader(getInputStream()));
+    }
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        final ByteArrayInputStream bais = new ByteArrayInputStream(body);
+
+        return new ServletInputStream() {
+            boolean ready = true;
+            boolean finished = false;
+
+            @Override
+            public boolean isFinished() {
+                return finished;
+            }
+
+            @Override
+            public boolean isReady() {
+                return ready;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+
+            }
+
+            @Override
+            public int read() throws IOException {
+                int b = bais.read();
+                if (b == -1) {
+                    finished = true;
+                    ready = false;
+                }
+                return b;
+            }
+        };
+    }
+
+    private byte[] toByteArray(ServletInputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024 * 4];
+        int n = 0;
+        while ((n = in.read(buffer)) != -1) {
+            out.write(buffer, 0, n);
+        }
+        return out.toByteArray();
+    }
+
+}
