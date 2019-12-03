@@ -39,7 +39,7 @@ public class ApiClass {
         builder.append("Note: "+note+"\n");
         builder.append("Controller: "+name+"\n\n");
         for (ApiEntry api : apis) {
-            builder.append(api+"\n\n");
+            builder.append(api + "\n---------------------------\n");
         }
         builder.append("\n");
         return builder.toString();

@@ -1,13 +1,14 @@
 package com.hl.experiment.exam.doc;
 
+import com.alibaba.fastjson.JSON;
 import com.sun.javadoc.AnnotationDesc;
+import com.sun.javadoc.AnnotationTypeDoc;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,7 +106,8 @@ public class JavaDocReader {
             ApiMethodDoc apiMethodDoc = new ApiMethodDoc(getMethodId(method), method.commentText());
 
             ParamTag[] paramTags = method.paramTags();
-            apiMethodDoc.setParamMap(buildParamMap(paramTags));
+            Parameter[] parameters = method.parameters();
+            apiMethodDoc.setParamMap(buildParamMap(paramTags, parameters));
             methodMap.put(apiMethodDoc.getName(), apiMethodDoc);
 
             // for test
@@ -118,26 +120,44 @@ public class JavaDocReader {
         return methodMap;
     }
 
-    private static Map<String, ApiParamDoc> buildParamMap(ParamTag[] paramTags,Parameter[] parameters) {
+    private static Map<String, ApiParamDoc> buildParamMap(ParamTag[] paramTags, Parameter[] parameters) {
         ConcurrentHashMap<String, ApiParamDoc> paramMap = new ConcurrentHashMap<>();
-        ConcurrentHashMap<String, Parameter> parameterMap = Arrays.stream(parameters).collect(Collectors.toMap(x->x.name(),x->x));
-        for (ParamTag tag: paramTags) {
-            Parameter parameter = parameterMap.get(tag.parameterName());
-            ApiParamDoc paramDoc = new ApiParamDoc(parameter.type(), tag.parameterName(), tag.parameterComment());
+        Map<String, Parameter> parameterMap = Arrays.asList(parameters).stream().collect(Collectors.toMap(x -> x.name(), x -> x));
+        Map<String, ParamTag> parameterTagMap = Arrays.asList(paramTags).stream().collect(Collectors.toMap(x -> x.parameterName(), x -> x));
+
+        for (Parameter parameter : parameters) {
+            ParamTag tag = parameterTagMap.get(parameter.name());
+            String typeName = parameter.type().qualifiedTypeName();
+            ApiParamDoc paramDoc = new ApiParamDoc(typeName, parameter.name(), tag != null ? tag.parameterComment() : null);
+            AnnotationDesc[] annos = parameter.annotations();
+            for (AnnotationDesc anno : annos) {
+                AnnotationDesc.ElementValuePair[] elements = anno.elementValues();
+                AnnotationTypeDoc annoType = anno.annotationType();
+                String annoTypeName = annoType.typeName();
+                if (annoTypeName != null && annoTypeName.endsWith("RequestParam")) {
+                    String value = null;
+                    for (AnnotationDesc.ElementValuePair ele : elements) {
+                        if (ele.element().name().equals("value")) {
+                            value = ele.value().toString();
+                        }
+                    }
+                    if (value != null) {
+                        paramDoc.setRequestParamName(value);
+                    }
+                } else if (annoTypeName != null && annoTypeName.endsWith("RequestBody")) {
+                    paramDoc.setBody(true);
+                }
+            }
+
+            Object exampleObj = ExampleUtil.getExampleByTypeName(typeName);
+            String example = JSON.toJSONString(exampleObj, true);
+            paramDoc.setExample(example);
+            paramMap.put(paramDoc.getName(), paramDoc);
         }
         return paramMap;
     }
 
     private static String getMethodId(MethodDoc method) {
         return method.name()+method.signature();
-    }
-
-    public static void main(String[] args) {
-        String pkg = "com.hl.experiment.exam";
-        String basePath = "D:/gitproject/experiment/exam-server";
-        String sourcePath = basePath + "/src/main/java";
-
-        readDoc(sourcePath, pkg);
-        show();
     }
 }

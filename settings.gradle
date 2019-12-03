@@ -1,5 +1,5 @@
 //include 'eureka-server'
-//include 'exam-server'
-include 'security'
+include 'exam-server'
+//include 'security'
 //include 'algo'
 

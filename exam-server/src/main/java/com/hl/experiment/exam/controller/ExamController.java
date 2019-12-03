@@ -31,8 +31,8 @@ public class ExamController {
      * @return 学生姓名
      */
     @PutMapping("/student")
-    public String editStudent(@RequestBody String student) {
-        name = student;
+    public String editStudent(@RequestBody Student student) {
+        name = student.getName();
         return name;
     }
 
@@ -43,7 +43,8 @@ public class ExamController {
      */
     @PostMapping("/student")
     public void addStudent(@RequestParam("name") String name,
-                           @RequestParam("age") String age) {
+                           @RequestParam("age") String age,
+                           @RequestParam() Student stud) {
         this.name = name;
         this.age = age;
     }

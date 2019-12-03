@@ -5,16 +5,14 @@ plugins {
 
 apply plugin: 'io.spring.dependency-management'
 
-def jdkHome = System.getenv("JAVA_HOME")
-
+// 引入tools.jar
 import javax.tools.ToolProvider
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
-    compile project(":security")
-    //compile files("$jdkHome/lib/tools.jar")
-    //compile 'com.sun.tools'
+    compile 'com.alibaba:fastjson:1.2.61'
 
+    // 引入tools.jar
     compile(files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs()))
 
     testCompile 'junit:junit'

@@ -5,20 +5,17 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -99,7 +96,6 @@ public class ApiDoc {
             ApiMethodDoc methodDoc = methodDocMap.get(methodId);
             apiEntry.setMethod(methodId);
             extractFromAnno(rAnno, apiEntry);
-            extractFromParams(method, apiEntry);
             extractFromMethodDoc(methodDoc, apiEntry);
             apis.add(apiEntry);
 
@@ -130,45 +126,21 @@ public class ApiDoc {
         apiEntry.setHttpMethod(anno.getMethod());
     }
 
-    private static void extractFromParams(Method method, ApiEntry apiEntry) {
-// note should from java doc of this method
-        apiEntry.setMethod(method.getName());
-
-        String body = null;
-        List<String> paramList = new ArrayList<>();
-        Parameter[] params = method.getParameters();
-        for (Parameter param : params) {
-            RequestParam paramAnno = param.getAnnotation(RequestParam.class);
-            if (paramAnno != null) {
-                String paramName = paramAnno.name();
-                if (paramName == null || paramName.isEmpty()) {
-                    paramName = param.getName();
-                }
-                paramList.add(paramName);
-                continue;
-            }
-            RequestBody bodyAnno = param.getAnnotation(RequestBody.class);
-            if (bodyAnno != null) {
-                body = MessageFormat.format("{0}:{1}", param.getType().getName(), param.getName());
-                continue;
-            }
-        }
-        String[] paramArr = new String[paramList.size()];
-        paramList.toArray(paramArr);
-        apiEntry.setQueryParams(paramArr);
-        apiEntry.setBody(body);
-    }
-
     private static void extractFromMethodDoc(ApiMethodDoc methodDoc, ApiEntry apiEntry) {
         if (methodDoc==null) {
             return;
         }
+        Map<String, ApiParamDoc> paramMap = methodDoc.getParamMap();
+        apiEntry.setQueryParamDocs(paramMap.values().stream().filter(x -> !x.isBody()).toArray(ApiParamDoc[]::new));
+
+        Optional<ApiParamDoc> body = paramMap.values().stream().filter(x -> x.isBody()).findFirst();
+        apiEntry.setBody(body.orElse(null));
         apiEntry.setNote(methodDoc.getCommentText());
     }
 
     public static void main(String[] args) {
         String pkg = "com.hl.experiment.exam.controller";
-        String basePath = "D:/gitproject/experiment/exam-server";
+        String basePath = "D:/IdeaProjects/experiment/exam-server";
         String sourcePath = basePath + "/src/main/java";
 
         JavaDocReader.readDoc(sourcePath, pkg);

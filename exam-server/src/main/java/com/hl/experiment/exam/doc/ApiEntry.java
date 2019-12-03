@@ -1,16 +1,15 @@
 package com.hl.experiment.exam.doc;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
 
 public class ApiEntry {
     private String method;
     private String note;
     private String httpMethod;
     private String path;
-    private String[] queryParams;
+    //    private String[] queryParams;
     private ApiParamDoc[] queryParamDocs;
-    private String body;
+    private ApiParamDoc body;
 
     public String getMethod() {
         return method;
@@ -44,13 +43,13 @@ public class ApiEntry {
         this.path = path;
     }
 
-    public String[] getQueryParams() {
-        return queryParams;
-    }
+//    public String[] getQueryParams() {
+//        return queryParams;
+//    }
 
-    public void setQueryParams(String[] queryParams) {
-        this.queryParams = queryParams;
-    }
+//    public void setQueryParams(String[] queryParams) {
+//        this.queryParams = queryParams;
+//    }
 
     public ApiParamDoc[] getQueryParamDocs() {
         return queryParamDocs;
@@ -60,20 +59,25 @@ public class ApiEntry {
         this.queryParamDocs = queryParamDocs;
     }
 
-    public String getBody() {
+    public ApiParamDoc getBody() {
         return body;
     }
 
-    public void setBody(String body) {
+    public void setBody(ApiParamDoc body) {
         this.body = body;
     }
 
     public String toString() {
+        String[] queryParamDocStrs = new String[queryParamDocs.length];
+        for (int i = 0; i < queryParamDocs.length; i++) {
+            queryParamDocStrs[i] = String.valueOf(queryParamDocs[i]);
+        }
+
         return MessageFormat.format(
                 "Note: {0}\n"
                         + "Method: {1}\n"
                         + "Path: {2}  {3}\n"
-                        + "Params: {4}\n"
-                        + "Body: {5}", note, method, httpMethod, path, Arrays.asList(queryParams), body);
+                        + "Params:\n {4}\n"
+                        + "Body: {5}", note, method, httpMethod, path, String.join("\n", queryParamDocStrs), body);
     }
 }
